@@ -1,4 +1,4 @@
-# vIgilancia: Sistema de Videovigilancia Inteligente Híbrido
+# Security Monitor Based on Computer Vision
 
 ![Estado](https://img.shields.io/badge/Estado-Finalizado-green)
 ![Lenguaje](https://img.shields.io/badge/C++-17-blue)
