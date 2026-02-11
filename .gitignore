@@ -1,0 +1,41 @@
+# Entornos Virtuales
+venv/
+env/
+.env
+
+# Archivos compilados y build
+build/
+*.o
+*.so
+*.a
+bin/
+__pycache__/
+*.pyc
+*.pyo
+
+# Datasets y Datos
+data/
+data_prime/
+temp/
+logs/
+
+# Modelos Grandes (Git LFS recomendado si se quieren versionar)
+*.pt
+*.onnx
+models/
+person_detector_svm.yml
+
+# Archivos de sistema e IDEs
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Archivos generados dinámicamente
+static/latest/
+evaluation_report.txt
+
+# Otros
+yolov8n-pose_openvino_model/
+mn_model/
+requirements_installed.marker

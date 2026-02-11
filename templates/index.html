@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vIgilancia | Centro de Comando</title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --neon-green: #00ff41;
+            --neon-blue: #00f3ff;
+            --dark-bg: #0a0a0a;
+            --panel-bg: rgba(16, 20, 24, 0.9);
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: #e0e0e0;
+            font-family: 'Rajdhani', sans-serif;
+            background-image: 
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        h1, h2, h3, .cyber-font {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 5px var(--neon-green), 0 0 10px var(--neon-green);
+        }
+
+        .neon-border {
+            border: 1px solid var(--neon-green);
+            box-shadow: 0 0 5px var(--neon-green), inset 0 0 5px var(--neon-green);
+        }
+
+        .cyber-panel {
+            background: var(--panel-bg);
+            border: 1px solid #333;
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 10px; height: 10px;
+            border-top: 2px solid var(--neon-green);
+            border-left: 2px solid var(--neon-green);
+        }
+        .cyber-panel::after {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 10px; height: 10px;
+            border-bottom: 2px solid var(--neon-green);
+            border-right: 2px solid var(--neon-green);
+        }
+
+        .live-indicator {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; box-shadow: 0 0 5px #ff0000; }
+            50% { opacity: 0.5; box-shadow: 0 0 15px #ff0000; }
+            100% { opacity: 1; box-shadow: 0 0 5px #ff0000; }
+        }
+
+        /* Scanline effect */
+        .scanline {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.2) 51%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6 relative">
+    <div class="scanline"></div>
+
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-shield-halved text-4xl text-[#00ff41] animate-pulse"></i>
+            <div>
+                <h1 class="text-3xl font-bold text-white neon-text">vIgilancia</h1>
+                <p class="text-xs text-[#00ff41] tracking-widest">SISTEMA DE DETECCIÓN INTELIGENTE</p>
+            </div>
+        </div>
+        <div class="flex gap-6 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_#00ff00]"></span>
+                <span class="text-gray-400">ESTADO:</span>
+                <span class="text-[#00ff41] font-bold">EN LÍNEA</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-server text-gray-500"></i>
+                <span class="text-gray-400">SERVIDOR:</span>
+                <span class="text-blue-400">FLASK::5000</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Columna Izquierda: Live Feed -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Panel Principal -->
+            <div class="cyber-panel p-1 rounded-lg">
+                <div class="bg-black relative aspect-video flex items-center justify-center overflow-hidden group">
+                    <!-- Placeholder si no hay imagen -->
+                    <div id="no-signal" class="absolute inset-0 flex flex-col items-center justify-center text-gray-600">
+                        <i class="fa-solid fa-video-slash text-6xl mb-4"></i>
+                        <p class="cyber-font text-xl">ESPERANDO SEÑAL...</p>
+                    </div>
+                    
+                    <!-- Imagen de última detección -->
+                    <img id="live-feed" src="" alt="Última Detección" class="w-full h-full object-contain hidden z-10">
+                    
+                    <!-- Overlay de información -->
+                    <div class="absolute top-4 left-4 z-20 flex gap-2">
+                        <span class="bg-red-600 text-white px-2 py-1 text-xs font-bold rounded flex items-center gap-1 live-indicator">
+                            <i class="fa-solid fa-circle text-[8px]"></i> EN VIVO
+                        </span>
+                        <span class="bg-black/70 border border-[#00ff41] text-[#00ff41] px-2 py-1 text-xs font-bold rounded">
+                            CAM-01
+                        </span>
+                    </div>
+
+                    <div class="absolute bottom-4 right-4 z-20 text-right">
+                        <p id="timestamp" class="text-white text-sm font-mono bg-black/50 px-2 rounded"></p>
+                    </div>
+                </div>
+                
+                <!-- Controles y Métricas Rápidas -->
+                <div class="p-4 bg-gray-900/50 flex justify-between items-center border-t border-gray-800">
+                    <div>
+                        <h3 class="text-white text-lg font-bold"><i class="fa-solid fa-child-reaching text-[#00ff41] mr-2"></i>POSTURA DETECTADA</h3>
+                        <p id="model-info" class="text-xs text-gray-400">Modelo: PyTorch KeypointRCNN (ResNet50)</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-500 uppercase">PERSONAS</p>
+                            <p id="person-count" class="text-2xl font-bold text-white digit">0</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-500 uppercase">CONFIANZA</p>
+                            <p id="confidence" class="text-2xl font-bold text-[#00ff41] digit">0%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfica o Logs (Opcional) -->
+            <div class="cyber-panel p-4 rounded-lg min-h-[200px]">
+                <h3 class="text-gray-400 text-sm mb-3 border-b border-gray-800 pb-2">
+                    <i class="fa-solid fa-terminal mr-2"></i>REGISTRO DEL SISTEMA
+                </h3>
+                <div id="system-logs" class="font-mono text-xs text-green-400/80 h-40 overflow-y-auto space-y-1 p-2 bg-black/40 rounded">
+                    <p>[SYSTEM] Iniciando interfaz web...</p>
+                    <p>[SYSTEM] Conectado al backend Flask...</p>
+                    <p>[INFO] Esperando datos de detección...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Historial y Estado -->
+        <div class="space-y-6">
+            <!-- Estado del Sistema -->
+            <div class="cyber-panel p-6 rounded-lg">
+                <h2 class="text-xl text-white mb-4 cyber-font neon-text">ESTADO GPU</h2>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-400">MEMORIA GPU</span>
+                            <span class="text-[#00ff41]">3.2 GB / 8.0 GB</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-green-500 to-blue-500 h-full w-[40%]"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-400">USO PROCESADOR</span>
+                            <span class="text-[#00f3ff]">12%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full w-[12%]"></div>
+                        </div>
+                    </div>
+                     <div class="grid grid-cols-2 gap-2 mt-4">
+                        <div class="bg-gray-800/50 p-3 rounded border border-gray-700 text-center">
+                            <i class="fa-solid fa-clock text-gray-500 text-xl mb-1"></i>
+                            <p class="text-[10px] text-gray-400">TIEMPO ACTIVO</p>
+                            <p id="uptime" class="text-white font-mono">00:00:00</p>
+                        </div>
+                        <div class="bg-gray-800/50 p-3 rounded border border-gray-700 text-center">
+                            <i class="fa-solid fa-eye text-gray-500 text-xl mb-1"></i>
+                            <p class="text-[10px] text-gray-400">TOTAL DETECCIONES</p>
+                            <p id="total-detections" class="text-white font-mono">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historial Reciente -->
+            <div class="cyber-panel p-4 rounded-lg flex-1">
+                <h3 class="text-white text-sm mb-4 cyber-font border-b border-gray-800 pb-2">
+                    <i class="fa-solid fa-history mr-2"></i>HISTORIAL RECIENTE
+                </h3>
+                <div id="history-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                    <!-- Items se agregarán dinámicamente -->
+                    <p class="text-center text-gray-600 text-xs py-4">Sin detecciones recientes</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        const logContainer = document.getElementById('system-logs');
+        const liveImg = document.getElementById('live-feed');
+        const noSignal = document.getElementById('no-signal');
+        
+        // Simulación de Uptime
+        let seconds = 0;
+        setInterval(() => {
+            seconds++;
+            const date = new Date(seconds * 1000);
+            const timeStr = date.toISOString().substr(11, 8);
+            document.getElementById('uptime').innerText = timeStr;
+        }, 1000);
+
+        function addLog(msg) {
+            const time = new Date().toLocaleTimeString();
+            const p = document.createElement('p');
+            p.innerText = `[${time}] ${msg}`;
+            logContainer.prepend(p);
+            // Mantener solo ultimos 50 logs
+            if (logContainer.children.length > 50) logContainer.lastChild.remove();
+        }
+
+        // Función principal de polling
+        async function fetchLatestData() {
+            try {
+                const response = await fetch('/api/latest');
+                const data = await response.json();
+
+                if (data.image_url) {
+                    // Actualizar imagen si cambió
+                    if (liveImg.src !== data.image_url) { // Fix simple check, idealmente usar ID
+                        liveImg.src = data.image_url + '?t=' + new Date().getTime(); // Evitar caché
+                        liveImg.classList.remove('hidden');
+                        noSignal.classList.add('hidden');
+                        
+                        document.getElementById('confidence').innerText = (data.confidence * 100).toFixed(1) + '%';
+                        document.getElementById('person-count').innerText = data.num_persons || 1;
+                        document.getElementById('timestamp').innerText = data.timestamp;
+                        
+                        addLog(`[DETECT] Postura detectada - Confianza: ${(data.confidence*100).toFixed(0)}%`);
+                        
+                        // Agregar al historial (simple)
+                        addToHistory(data);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        function addToHistory(data) {
+            // Lógica simplificada para demo
+            // En producción, verificar ID único para no repetir
+        }
+
+        // Polling cada 2 segundos warning: polling agresivo, ajustar según necesidad
+        setInterval(fetchLatestData, 2000);
+
+    </script>
+</body>
+</html>
