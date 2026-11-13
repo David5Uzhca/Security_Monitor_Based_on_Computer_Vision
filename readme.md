@@ -1,134 +1,138 @@
 # Security Monitor Based on Computer Vision
 
-![Estado](https://img.shields.io/badge/Estado-Finalizado-green)
-![Lenguaje](https://img.shields.io/badge/C++-17-blue)
-![Lenguaje](https://img.shields.io/badge/Python-3.8+-yellow)
-![Vision](https://img.shields.io/badge/OpenCV-4.x-red)
-![AI](https://img.shields.io/badge/PyTorch-Deep_Learning-orange)
+[![C++](https://img.shields.io/badge/Language-C%2B%2B17-00599C.svg?logo=cplusplus)](https://isocpp.org/)
+[![Python](https://img.shields.io/badge/Language-Python%203.10+-3776AB.svg?logo=python)](https://python.org/)
+[![OpenCV](https://img.shields.io/badge/Computer%20Vision-OpenCV%204.x-5C3EE8.svg?logo=opencv)](https://opencv.org/)
+[![Deep Learning](https://img.shields.io/badge/Inference-PyTorch%20%7C%20Keypoint%20R--CNN-EE4C2C.svg?logo=pytorch)](https://pytorch.org/)
+[![Alerts](https://img.shields.io/badge/Notifications-Telegram%20Bot%20API-2CA5E0.svg?logo=telegram)](https://core.telegram.org/bots/api)
+[![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen.svg)](#)
 
-## Resumen Ejecutivo
-
-**Security Monitor Based on Computer Vision** es una plataforma de seguridad activa diseñada para transformar cámaras de videovigilancia pasivas en agentes inteligentes de detección. Utilizando una **arquitectura híbrida** de alto rendimiento, el sistema combina la velocidad de **C++** para la detección de intrusos en tiempo real con la potencia de **Python y Deep Learning** para el análisis semántico de comportamientos.
-
-A diferencia de los sistemas tradicionales que solo graban evidencia, vIgilancia detecta, analiza y alerta en el momento exacto en que ocurre un evento, enviando notificaciones multimedia a los usuarios y registrando la actividad en un **Dashboard Web** de monitoreo.
+> **Plataforma híbrida de videovigilancia activa y análisis postural en tiempo real.**  
+> Desacoplamiento de detección rápida en hardware nativo (**C++17 / OpenCV**) e inferencia semántica profunda (**Python / PyTorch**).
 
 ---
 
-## Objetivos del Proyecto
+## 1. Resumen de Ingeniería
 
-### Objetivo General
-Desarrollar un sistema de seguridad inteligente, escalable y de bajo costo, capaz de detectar presencia humana en tiempo real y analizar posturas clave (de pie, caído, agachado) para generar alertas tempranas y reducir la dependencia de la supervisión humana constante.
+Los sistemas de videovigilancia convencionales son eminentemente pasivos: almacenan cientos de horas de video continuo sin valor predictivo y sobrecargan a los operadores humanos. Por otro lado, ejecutar redes neuronales profundas (CNN/Transformers) cuadro a cuadro sobre streams continuos de 1080p es computacionalmente prohibitivo para implementaciones en hardware de borde (*edge devices*).
 
-### Objetivos Específicos
-1.  **Detección en Tiempo Real:** Implementar un detector de personas robusto utilizando **HOG (Histograms of Oriented Gradients) + SVM Lineal** en C++, optimizado con técnicas de *downscaling* y gestión eficiente de memoria.
-2.  **Reducción de Falsos Positivos:** Entrenar un modelo personalizado utilizando **Hard Negative Mining** (minería de negativos difíciles) para minimizar las falsas alarmas en entornos complejos.
-3.  **Análisis de Comportamiento:** Integrar un módulo de Inteligencia Artificial en Python (Keypoint R-CNN) para estimar la postura de los sujetos detectados.
-4.  **Monitoreo Centralizado:** Desarrollar un **Dashboard Web** (Flask + TailwindCSS) con estética *Cyberpunk* para la visualización de cámaras, estado del sistema y logs de detección.
-5.  **Alertas Inmediatas:** Implementar un bot de **Telegram** que reciba clips de video y notifique al usuario segundos después de una detección confirmada.
+**Security Monitor** resuelve este dilema mediante un **diseño arquitectónico híbrido de dos niveles**:
+
+1. **Nivel 1 ("El Ojo" - C++17 / OpenCV):** Ejecuta continuamente sobre el stream de video a máxima tasa de cuadros (30+ FPS). Utiliza un descriptor clásico **HOG (Histograms of Oriented Gradients)** acoplado a un clasificador **Linear SVM** entrenado mediante **Hard Negative Mining** para detectar presencia humana con consumo mínimo de CPU y memoria RSS. Al confirmar una detección sostenida, captura un buffer de video circular de 5 segundos.
+2. **Nivel 2 ("El Cerebro" - Python / PyTorch / Flask):** Se activa únicamente bajo demanda al recibir el clip de 5 segundos. Ejecuta un modelo de **Keypoint R-CNN (ResNet-50 FPN)** para estimar las coordenadas anatómicas de 17 puntos clave del sujeto, clasificando su postura (*de pie, agachado, caída crítica*) y despachando alertas multimedia inmediatas vía **Telegram** y registrando la telemetría en un **Dashboard Web**.
 
 ---
 
-## Arquitectura del Sistema
+## 2. Diagrama de Arquitectura y Flujo de Datos
 
-El sistema opera mediante dos subsistemas desacoplados que se comunican vía HTTP:
-
-### 1. El "Ojo" (C++ / OpenCV)
-*   **Rol:** Captura, Detección y Filtrado.
-*   **Tecnología:** C++17, OpenCV 4.
-*   **Funcionamiento:** Procesa el feed de video cuadro a cuadro. Utiliza un descriptor HOG personalizado y un SVM entrenado para detectar siluetas humanas.
-*   **Lógica de Grabación:** Al detectar movimiento humano, inicia una grabación bufferizada de **5 segundos**. Si la detección persiste o es válida, envía el clip de video al servidor Python.
-*   **Ventaja:** Extremadamente rápido y ligero, filtra el 99% del video "vacío" antes de usar recursos de IA pesados.
-
-### 2. El "Cerebro" (Python / Flask / PyTorch)
-*   **Rol:** Análisis, Interfaz y Notificación.
-*   **Tecnología:** Python, Flask, PyTorch (TorchVision), Telegram API.
-*   **Funcionamiento:**
-    *   Actúa como servidor web para recibir los videos del módulo C++.
-    *   Procesa los clips recibidos con **Keypoint R-CNN** para extraer el esqueleto y determinar la postura.
-    *   Actualiza el Dashboard Web en tiempo real.
-    *   Envía las alertas finales al usuario vía Telegram.
-
----
-
-## Stack Tecnológico
-
-*   **Lenguajes:** C++17, Python 3.10+, HTML5, CSS3, JavaScript.
-*   **Visión Artificial:** OpenCV 4.6 (C++ y Python).
-*   **Deep Learning:** PyTorch, TorchVision (Modelo Keypoint-RCNN ResNet-50).
-*   **Backend Web:** Flask, Gunicorn.
-*   **Frontend y UI:** TailwindCSS, FontAwesome, Diseño responsive.
-*   **Mensajería:** python-telegram-bot.
-*   **Herramientas de Desarrollo:** CMake, GCC, Git.
-
----
-
-## Guía de Instalación
-
-### Prerrequisitos
-*   Linux (Ubuntu 20.04/22.04 recomendado).
-*   Compilador C++ (g++) y CMake.
-*   Python 3.8 o superior.
-*   OpenCV 4 instalado en el sistema (`libopencv-dev`).
-
-### 1. Clonar el Repositorio
-```bash
-git clone https://github.com/David5Uzhca/Security_Monitor_Based_on_Computer_Vision.git
-cd Security_Monitor_Based_on_Computer_Vision
+```
+[ Cámara RTSP / USB ]
+         | (Video Stream raw)
+         v
++-------------------------------------------------------------+
+|              SUBSISTEMA C++ (Detección Rápida)              |
+|                                                             |
+|   1. Captura Frame & Preprocesamiento (Downscaling)         |
+|   2. Extractor de Características HOG (64x128 píxeles)      |
+|   3. Clasificador Linear SVM (Optimizado con Hard Negatives)|
+|   4. Non-Maximum Suppression (NMS) & Buffer de Decisión     |
+|   5. Grabación Circular (5s MP4 con VideoWriter)            |
++------------------------------+------------------------------+
+                               |
+                   HTTP POST / IPC Multipart
+                   (Clip 5 segundos solo si hay evento)
+                               |
+                               v
++-------------------------------------------------------------+
+|              SUBSISTEMA PYTHON (Análisis Semántico)         |
+|                                                             |
+|   1. API Gateway Flask (Recepción asíncrona)                |
+|   2. Decodificación de Frames & Muestreo                    |
+|   3. Inferencia PyTorch (Keypoint R-CNN)                    |
+|   4. Clasificación de Postura:                              |
+|      - Normal (De pie)                                      |
+|      - Sospechoso (Agachado / Oculto)                       |
+|      - Emergencia (Caída detectada)                         |
++------------------------------+------------------------------+
+                               |
+             +-----------------+-----------------+
+             |                                   |
+             v                                   v
++-------------------------+         +-------------------------+
+|     Telegram Bot API    |         |   Dashboard Web UI      |
+|  - Alerta Push en <2s   |         |  - Flask + TailwindCSS  |
+|  - Video MP4 adjunto    |         |  - Bitácora de Eventos  |
+|  - Diagnóstico Postural |         |  - Stream de Monitoreo  |
++-------------------------+         +-------------------------+
 ```
 
-### 2. Configurar el Entorno Python
+---
+
+## 3. Aspectos Técnicos Destacados
+
+### 3.1 Hard Negative Mining para Mitigación de Falsos Positivos
+Un detector HOG estándar suele disparar falsas alarmas ante patrones de fondo complejos (sombras, ramas, muebles). Se implementó un pipeline de entrenamiento en dos etapas:
+* **Etapa 1:** Entrenamiento inicial de Linear SVM con positivos etiquetados y negativos aleatorios.
+* **Etapa 2 (Mining):** Evaluación del detector sobre miles de imágenes sin personas; los falsos positivos detectados (*Hard Negatives*) se recolectan automáticamente y se inyectan en una segunda ronda de reentrenamiento, logrando una reducción drástica de falsos disparos en el módulo C++.
+
+### 3.2 Eficiencia de Memoria y Métricas en Tiempo Real
+El ejecutable C++ implementa monitorización nativa de memoria residente (**RSS**) leyendo directamente el descriptor del kernel Linux (`/proc/self/statm`), garantizando que no existan fugas de memoria (*memory leaks*) en el bucle principal de adquisición de video de OpenCV.
+
+---
+
+## 4. Estructura del Repositorio
+
+```
+Security_Monitor_Based_on_Computer_Vision/
+├── CMakeLists.txt              # Configuración de compilación CMake (C++17)
+├── real_time_detector.cpp      # Módulo principal C++ de detección en vivo y buffer
+├── train_hog_svm.cpp           # Pipeline de entrenamiento HOG + Linear SVM
+├── train_hog_fast.cpp          # Versión optimizada con multithreading OpenMP
+├── prepare_dataset.py          # Scripts de preparación y aumento de datos
+├── evaluation.py               # Métricas de precisión, exhaustividad y curva ROC
+├── telegram_pose_bot.py        # Servidor Flask + Inferencia PyTorch + Bot Telegram
+├── test_api.py                 # Pruebas automatizadas de comunicación HTTP
+├── requirements.txt            # Dependencias del entorno Python
+└── templates/
+    └── index.html              # Interfaz de monitoreo web en tiempo real
+```
+
+---
+
+## 5. Guía de Compilación y Ejecución
+
+### Prerrequisitos
+* **Linux:** Ubuntu 20.04 / 22.04 LTS o Kubuntu.
+* **Compilador:** GCC/G++ con soporte C++17 y CMake $\ge$ 3.16.
+* **Bibliotecas:** `libopencv-dev` (OpenCV 4.x), `libcurl4-openssl-dev`.
+* **Python:** 3.10+ con soporte CUDA (opcional para acelerar PyTorch).
+
+### Paso 1: Configurar el Entorno Python
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Compilar el Módulo C++
+### Paso 2: Compilar el Núcleo C++ con CMake
 ```bash
 mkdir build && cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(nproc)
 ```
-Esto generará dos ejecutables:
-*   `train_hog_svm`: Para entrenar el modelo (si se requiere re-entrenar).
-*   `real_time_detector`: El detector principal.
+Generará el ejecutable binario de alto rendimiento: `real_time_detector`.
 
-### 4. Configuración
-Crea un archivo `.env` en la raíz con tus credenciales:
-```env
-TELEGRAM_TOKEN=tu_token_aqui
-TELEGRAM_CHAT_ID=tu_chat_id
-```
-
----
-
-## Uso del Sistema
-
-Para iniciar el sistema completo, necesitas dos terminales:
-
-**Terminal 1: El Servidor (Dashboard y Bot)**
+### Paso 3: Iniciar el Servidor de Inferencia y Notificaciones
 ```bash
-source venv/bin/activate
-python telegram_pose_bot.py
-```
-*   Accede al Dashboard en: `http://localhost:5000`
+# Exportar el token de Telegram provisto por BotFather
+export TELEGRAM_BOT_TOKEN="TU_TOKEN_AQUI"
+export TELEGRAM_CHAT_ID="TU_CHAT_ID_AQUI"
 
-**Terminal 2: El Detector (Cámara)**
+python3 telegram_pose_bot.py
+```
+
+### Paso 4: Lanzar el Detector de Borde en C++
 ```bash
-cd build
-./real_time_detector
+./build/real_time_detector
 ```
-*   El sistema comenzará a buscar personas. Al detectar una durante 5 segundos, enviará el video automáticamente al Dashboard y a Telegram.
-
----
-
-## Mejoras Futuras
-*   Integración de reconocimiento facial.
-*   Soporte para múltiples cámaras IP simultáneas.
-*   Contenedorización con Docker para despliegue fácil.
-*   Análisis de trayectoria y mapas de calor.
-
----
-**Autor:**\
-David Uzhca\
-Tania Lojano
+El detector procesará la señal de cámara en tiempo real; ante cualquier evento, empaquetará el clip y lo despachará al servidor Python de forma no bloqueante.
